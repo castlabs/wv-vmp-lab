@@ -79,3 +79,34 @@ https://localhost:8443
   mkcert 127.0.0.1
   ```
 * Do **not** commit the generated `.pem` files to version control.
+
+## Electron for Content Security (ECS) Testing
+
+The `tools/ecs/` directory contains a couple of helper scripts to be able to easily execute an ECS build with either a
+local or GitHub Pages instance.
+
+### Prerequisites
+
+You need an appropriate [ECS release](https://github.com/castlabs/electron-releases/releases) for your platform
+downloaded and extracted on your system.
+
+### Running ECS
+
+Run the ECS main executable and provide the path of either `tools/ecs/gh-main.js` or `tools/ecs/local-main.js` as an
+argument.
+
+For example (macOS):
+
+```
+/path/to/Electron.app/Contents/MacOS/Electron tools/ecs/gh-main.js
+```
+
+Or:
+
+```
+open -a /path/to/Electron.app --args /path/to/tools/ecs/gh-main.js
+```
+
+Windows and Linux versions of ECS can be similarly executed.
+
+
