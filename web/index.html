@@ -178,13 +178,13 @@
     <fieldset>
       <legend>Controls</legend>
       <div style="display:flex; gap:8px;">
-        <button id="loadContentBtn">Load Content</button>
+        <button id="loadContentBtn" title="Load selected content and initialize the player">Load Content</button>
         <button id="downloadReportBtn" title="Download report (Alt+Click to open in tab)">Download Report</button>
       </div>
     </fieldset>
     <fieldset style="margin-left: auto; display: flex; align-items: center;">
       <legend>Content List</legend>
-      <select id="contentSelect">
+      <select id="contentSelect" title="Select the DASH content to load">
         <option value="https://storage.googleapis.com/wvmedia/cenc/h264/tears/tears.mpd">
           Tears of Steel / H264
         </option>
@@ -198,7 +198,7 @@
     </fieldset>
     <fieldset style="display: flex; align-items: center;">
       <legend>Backends</legend>
-      <select id="backendSelect">
+      <select id="backendSelect" title="Select the Widevine license proxy backend">
         <option value="https://proxy.uat.widevine.com/proxy">
           UAT
         </option>
