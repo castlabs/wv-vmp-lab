@@ -302,7 +302,15 @@ document.getElementById('loadContentBtn').onclick = async () => {
       if (type === shaka.net.NetworkingEngine.RequestType.LICENSE) {
         const message_type = extractInt(request.body, [1]);
         const message_type_str = enumToString(MessageType, message_type);
-        log(">>", message_type_str);
+        if (message_type === 1) {
+          const versionField = extractFieldRaw(request.body, [2, 9]);
+          const version = versionField?.wireType === 2
+            ? new TextDecoder().decode(versionField.value)
+            : null;
+          log(">>", message_type_str, version ? `| CDM ${version}` : '');
+        } else {
+          log(">>", message_type_str);
+        }
       }
     });
     net.registerResponseFilter((type, response) => {
