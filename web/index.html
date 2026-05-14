@@ -36,6 +36,15 @@
     button:hover {
       background: #f0f0f0;
     }
+    .page-layout {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    .main-content {
+      flex: 1;
+      min-width: 0;
+    }
     .controls {
       display: flex;
       gap: 20px;
@@ -65,9 +74,94 @@
       font-size: 13px;
       line-height: 1.4;
     }
+    .status-panel {
+      min-width: 260px;
+      width: 260px;
+      flex-shrink: 0;
+    }
+    .status-panel fieldset {
+      padding: 8px 10px 10px;
+    }
+    .stat-section {
+      margin-top: 8px;
+      padding-top: 6px;
+      border-top: 1px solid #eee;
+    }
+    .stat-section:first-child {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+    .stat-section-header {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 6px;
+      padding: 2px 0;
+      font-size: 13px;
+    }
+    .stat-label {
+      color: #555;
+      white-space: nowrap;
+    }
+    .stat-value {
+      text-align: right;
+      word-break: break-all;
+    }
+    .stat-value.pending { color: #aaa; }
+    .stat-value.ok      { color: #2a7a2a; font-weight: 500; }
+    .stat-value.na      { color: #999; }
+    .stat-value.error   { color: #c0392b; }
+    .stat-browser {
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+    .stat-browser.ok { color: #2a7a2a; font-weight: 500; }
+    .stat-browser.na { color: #999; }
+    .stat-browser-engine {
+      font-size: 11px;
+      color: #888;
+      margin-top: 1px;
+      margin-left: 8px;
+    }
+    .stat-ua {
+      font-size: 11px;
+      color: #aaa;
+      line-height: 1.4;
+      word-break: break-all;
+      margin-top: 6px;
+    }
+    .stat-links .chrome-link {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: #1a73e8;
+      cursor: pointer;
+      padding: 2px 0;
+    }
+    .stat-links .chrome-link:hover {
+      text-decoration: underline;
+    }
+    .copy-feedback {
+      font-size: 11px;
+      color: #2a7a2a;
+      font-weight: 500;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
+  <div class="page-layout">
+  <div class="main-content">
   <div class="controls">
     <fieldset>
       <legend>Content List</legend>
@@ -107,6 +201,76 @@
     <legend>Log Output</legend>
     <pre id="logBox"></pre>
   </fieldset>
+  </div><!-- .main-content -->
+
+  <aside class="status-panel">
+    <fieldset>
+      <legend>Environment</legend>
+
+      <div class="stat-section">
+        <div class="stat-section-header">Browser</div>
+        <div class="stat-browser" id="stat-browser">…</div>
+        <div class="stat-browser-engine" id="stat-browser-engine"></div>
+        <div class="stat-ua" id="stat-ua">…</div>
+      </div>
+
+      <div class="stat-section">
+        <div class="stat-section-header">Widevine</div>
+        <div class="stat-row">
+          <span class="stat-label">Key system</span>
+          <span class="stat-value pending" id="stat-ks">…</span>
+        </div>
+      </div>
+
+      <div class="stat-section">
+        <div class="stat-section-header">Video codecs</div>
+        <div class="stat-row">
+          <span class="stat-label">H.264</span>
+          <span class="stat-value pending" id="stat-h264">…</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">VP9</span>
+          <span class="stat-value pending" id="stat-vp9">…</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">HEVC</span>
+          <span class="stat-value pending" id="stat-hevc">…</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">AV1</span>
+          <span class="stat-value pending" id="stat-av1">…</span>
+        </div>
+      </div>
+
+      <div class="stat-section">
+        <div class="stat-section-header">Audio codecs</div>
+        <div class="stat-row">
+          <span class="stat-label">AAC</span>
+          <span class="stat-value pending" id="stat-aac">…</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Opus</span>
+          <span class="stat-value pending" id="stat-opus">…</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">AC-3</span>
+          <span class="stat-value pending" id="stat-ac3">…</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">EAC-3</span>
+          <span class="stat-value pending" id="stat-eac3">…</span>
+        </div>
+      </div>
+
+      <div class="stat-section stat-links" id="chrome-links" style="display:none">
+        <div class="stat-section-header">Chrome</div>
+        <span class="chrome-link" title="Click to copy to clipboard" data-url="chrome://components/">chrome://components/<span class="copy-feedback"></span></span>
+        <span class="chrome-link" title="Click to copy to clipboard" data-url="chrome://media-internals/">chrome://media-internals/<span class="copy-feedback"></span></span>
+      </div>
+
+    </fieldset>
+  </aside>
+  </div><!-- .page-layout -->
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.16.3/shaka-player.compiled.min.js"></script>
   <script src="index.js"></script>

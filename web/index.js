@@ -67,14 +67,7 @@ function extractFieldRaw(buffer, path, depth = 0) {
 
 function extractInt(buffer, path) {
   const res = extractFieldRaw(buffer, path);
-
-  if (!res) return null;
-
-  if (res.wireType === 0) {
-    return res.value;
-  }
-
-  return null;
+  return res?.wireType === 0 ? res.value : null;
 }
 
 // =========================
@@ -114,6 +107,140 @@ const ERROR_CATEGORY = buildReverseMap(shaka.util.Error.Category);
 const ERROR_CODE = buildReverseMap(shaka.util.Error.Code);
 
 // =========================
+// Environment status
+// =========================
+
+function setStatus(id, type, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'stat-value ' + type;
+}
+
+async function checkKeySystem(config) {
+  if (!navigator.requestMediaKeySystemAccess) return false;
+  try {
+    await navigator.requestMediaKeySystemAccess('com.widevine.alpha', config);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function detectBrowser() {
+  const ua = navigator.userAgent;
+  const chromiumMatch = ua.match(/Chrome\/([\d.]+)/);
+  const chromiumVersion = chromiumMatch?.[1];
+
+  // Electron is never in userAgentData — detect from UA string first
+  const electronMatch = ua.match(/Electron\/([\d.]+)/);
+  if (electronMatch) {
+    return {
+      primary: `Electron ${electronMatch[1]}`,
+      secondary: chromiumVersion ? `Chromium ${chromiumVersion}` : null,
+    };
+  }
+
+  // userAgentData gives structured brand info for Chromium-based browsers
+  if (navigator.userAgentData) {
+    try {
+      const hints = await navigator.userAgentData.getHighEntropyValues(['fullVersionList']);
+      const brands = hints.fullVersionList.filter(b => !b.brand.includes('Not'));
+      const specific = brands.find(b => b.brand !== 'Chromium');
+      const chromium = brands.find(b => b.brand === 'Chromium');
+      if (specific) {
+        // Google Chrome IS Chromium — no secondary line needed
+        if (specific.brand === 'Google Chrome') return { primary: `Google Chrome ${specific.version}`, secondary: null };
+        return {
+          primary: `${specific.brand} ${specific.version}`,
+          secondary: chromiumVersion ? `Chromium ${chromiumVersion}` : null,
+        };
+      }
+      if (chromium) return { primary: `Chromium ${chromium.version}`, secondary: null };
+    } catch {}
+  }
+
+  // UA string fallback for Firefox-based, Safari, and anything else
+  if (/Firefox\//.test(ua)) return { primary: 'Firefox ' + ua.match(/Firefox\/([\d.]+)/)[1], secondary: null };
+  if (/Version\/.+Safari\//.test(ua)) return { primary: 'Safari ' + ua.match(/Version\/([\d.]+)/)[1], secondary: null };
+  if (chromiumVersion) return { primary: `Chromium ${chromiumVersion}`, secondary: null };
+  return null;
+}
+
+async function checkStatus() {
+  // User-Agent
+  document.getElementById('stat-ua').textContent = navigator.userAgent;
+
+  const browser = await detectBrowser();
+  const browserEl = document.getElementById('stat-browser');
+  const engineEl = document.getElementById('stat-browser-engine');
+  browserEl.textContent = browser?.primary ?? 'Unknown';
+  browserEl.className = 'stat-browser ' + (browser ? 'ok' : 'na');
+  engineEl.textContent = browser?.secondary ?? '';
+
+  // Widevine key system availability
+  if (!navigator.requestMediaKeySystemAccess) {
+    setStatus('stat-ks', 'error', 'EME not supported');
+    ['stat-h264', 'stat-vp9', 'stat-hevc', 'stat-av1', 'stat-aac', 'stat-opus', 'stat-ac3', 'stat-eac3'].forEach(
+      id => setStatus(id, 'na', '—')
+    );
+  } else {
+    const ksOk = await checkKeySystem([{
+      initDataTypes: ['cenc'],
+      videoCapabilities: [{ contentType: 'video/mp4; codecs="avc1.42E01E"' }],
+      audioCapabilities: [{ contentType: 'audio/mp4; codecs="mp4a.40.2"' }],
+    }]);
+    setStatus('stat-ks', ksOk ? 'ok' : 'error', ksOk ? 'Available' : 'Not available');
+
+    // Video and audio codec checks (run in parallel)
+    const videoCodecs = [
+      { id: 'stat-h264', contentType: 'video/mp4; codecs="avc1.42E01E"' },
+      { id: 'stat-vp9', contentType: 'video/webm; codecs="vp9"' },
+      { id: 'stat-hevc', contentType: 'video/mp4; codecs="hvc1.1.6.L93.B0"' },
+      { id: 'stat-av1', contentType: 'video/webm; codecs="av01.0.05M.08"' },
+    ];
+    const audioCodecs = [
+      { id: 'stat-aac', contentType: 'audio/mp4; codecs="mp4a.40.2"' },
+      { id: 'stat-opus', contentType: 'audio/webm; codecs="opus"' },
+      { id: 'stat-ac3', contentType: 'audio/mp4; codecs="ac-3"' },
+      { id: 'stat-eac3', contentType: 'audio/mp4; codecs="ec-3"' },
+    ];
+    await Promise.all([
+      ...videoCodecs.map(({ id, contentType }) =>
+        checkKeySystem([{ initDataTypes: ['cenc'], videoCapabilities: [{ contentType }] }])
+          .then(ok => setStatus(id, ok ? 'ok' : 'error', ok ? '✓' : '✗'))
+      ),
+      ...audioCodecs.map(({ id, contentType }) =>
+        checkKeySystem([{ initDataTypes: ['cenc'], audioCapabilities: [{ contentType }] }])
+          .then(ok => setStatus(id, ok ? 'ok' : 'error', ok ? '✓' : '✗'))
+      ),
+    ]);
+  }
+
+  // Show Chrome-only links when the chrome:// scheme is available
+  if (typeof window.chrome !== 'undefined') {
+    document.getElementById('chrome-links').style.display = '';
+  }
+}
+
+checkStatus();
+
+document.querySelectorAll('.chrome-link').forEach(el => {
+  el.addEventListener('click', async () => {
+    const url = el.dataset.url;
+    const feedback = el.querySelector('.copy-feedback');
+    try {
+      await navigator.clipboard.writeText(url);
+      feedback.textContent = '✓ Copied!';
+      setTimeout(() => { feedback.textContent = ''; }, 1500);
+    } catch {
+      feedback.textContent = 'Copy failed';
+      setTimeout(() => { feedback.textContent = ''; }, 1500);
+    }
+  });
+});
+
+// =========================
 // Logging
 // =========================
 
@@ -132,12 +259,12 @@ function log(...args) {
 
 function logError(e) {
   if (e instanceof shaka.util.Error) {
-    const category = ERROR_CATEGORY[e.category] || e.category
-    const code = ERROR_CODE[e.code] || e.code
-    e.message = `Shaka Error ${category}.${code}`
+    const category = ERROR_CATEGORY[e.category] || e.category;
+    const code = ERROR_CODE[e.code] || e.code;
+    e.message = `Shaka Error ${category}.${code}`;
   }
-  console.error("Error:", e)
-  let log_e = Object.assign(Object.create(e), e)
+  console.error("Error:", e);
+  const log_e = Object.assign(Object.create(e), e);
   log_e.stack = undefined;
   log_e.data = undefined;
   logBox.textContent += "Error: " + log_e + "\n";
@@ -150,38 +277,38 @@ function logError(e) {
 let player = null;
 
 document.getElementById('loadContentBtn').onclick = async () => {
-  const contentSelect = document.getElementById('contentSelect').selectedOptions[0]
-  const backendSelect = document.getElementById('backendSelect').selectedOptions[0]
+  const contentSelect = document.getElementById('contentSelect').selectedOptions[0];
+  const backendSelect = document.getElementById('backendSelect').selectedOptions[0];
   const video = document.getElementById('video');
 
   clearLog();
-  log(`Loading content: ${contentSelect.text}, using backend: ${backendSelect.text}`)
+  log(`Loading content: ${contentSelect.text}, using backend: ${backendSelect.text}`);
 
   shaka.polyfill.installAll();
 
   try {
     if (player) {
       await player.destroy();
-      player = null
+      player = null;
     }
     player = new shaka.Player();
 
     player.addEventListener('error', (e) => {
-      logError(e.detail)
+      logError(e.detail);
     });
 
     const net = player.getNetworkingEngine();
     net.registerRequestFilter((type, request) => {
       if (type === shaka.net.NetworkingEngine.RequestType.LICENSE) {
         const message_type = extractInt(request.body, [1]);
-        const message_type_str = enumToString(MessageType, message_type)
+        const message_type_str = enumToString(MessageType, message_type);
         log(">>", message_type_str);
       }
     });
     net.registerResponseFilter((type, response) => {
       if (type === shaka.net.NetworkingEngine.RequestType.LICENSE) {
         const message_type = extractInt(response.data, [1]);
-        const message_type_str = enumToString(MessageType, message_type)
+        const message_type_str = enumToString(MessageType, message_type);
         if (message_type === 2) {
           const value = extractInt(response.data, [2, 10]);
           log("<<", message_type_str, "|", enumToString(PlatformVerificationStatus, value));
@@ -194,19 +321,19 @@ document.getElementById('loadContentBtn').onclick = async () => {
     player.configure({
       drm: {
         servers: {
-          "com.widevine.alpha": backendSelect.value
+          "com.widevine.alpha": backendSelect.value,
         },
         advanced: {
           "com.widevine.alpha": {
             videoRobustness: ["SW_SECURE_DECODE"],
-            audioRobustness: ["SW_SECURE_CRYPTO"]
-          }
+            audioRobustness: ["SW_SECURE_CRYPTO"],
+          },
         },
-        retryParameters: { maxAttempts: 1 }
-      }
+        retryParameters: { maxAttempts: 1 },
+      },
     });
 
-    await player.attach(video)
+    await player.attach(video);
     await player.load(contentSelect.value);
   } catch (e) {
     logError(e);
