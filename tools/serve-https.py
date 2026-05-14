@@ -64,7 +64,7 @@ def main():
     os.chdir(serve_dir)
 
     handler = http.server.SimpleHTTPRequestHandler
-    httpd = http.server.HTTPServer(("localhost", args.port), handler)
+    httpd = http.server.ThreadingHTTPServer(("localhost", args.port), handler)
 
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
     context.load_cert_chain(certfile=str(cert_path), keyfile=str(key_path))
