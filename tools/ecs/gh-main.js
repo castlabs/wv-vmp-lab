@@ -10,5 +10,5 @@ app.whenReady().then(async () => {
     width: 1200,
     height: 900,
   });
-  mainWindow.loadURL('https://khwaaj.github.io/wv-vmp-lab/');
+  mainWindow.loadURL('https://castlabs.github.io/wv-vmp-lab/');
 });
