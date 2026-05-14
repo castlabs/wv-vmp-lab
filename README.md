@@ -11,17 +11,21 @@ well the status of the Verified Media Path (VMP) of the implementation.
 
 * Play a selection of official Widevine test content.
 * Select UAT or Production Widevine backends.
-* Log DRM requests/reponses, including the VMP status of delivered content licenses.
+* Log DRM requests/responses, including the VMP status of delivered content licenses and CDM version.
+* Environment panel showing browser name/version, Widevine key system availability, and A/V codec support.
+* Download a Markdown report of the environment status and log output.
 
 ## Usage
 
 1. Open the page in a browser
-2. Select:
+2. The **Environment** panel on the right automatically shows browser info, Widevine key system availability, and A/V codec support.
+3. Select:
    * Content to play from the **Content List** dropdown.
    * The backend to use from the **Backends** dropdown.
-3. Click **Load Content**
-4. Observe the **Log Output** below the *Player*.
-5. Optionally play the loaded content by using the media controls.
+4. Click **Load Content**
+5. Observe the **Log Output** below the player — this includes the Widevine message types, VMP status, and CDM version.
+6. Optionally play the loaded content using the media controls.
+7. Optionally click **Download Report** to save a Markdown report of the environment status and log. Alt+Click opens it in a new tab instead.
 
 ## Local Testing
 
