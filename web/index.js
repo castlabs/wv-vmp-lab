@@ -271,6 +271,79 @@ function logError(e) {
 }
 
 // =========================
+// Report
+// =========================
+
+const downloadReportBtn = document.getElementById('downloadReportBtn');
+
+function buildReport() {
+  const g = id => document.getElementById(id)?.textContent.trim() ?? '—';
+  const codecRow = (label, id) => `| ${label.padEnd(6)} | ${g(id).padEnd(6)} |`;
+  const now = new Date();
+  const ts = now.toISOString().slice(0, 16).replace('T', ' ');
+
+  const engine = g('stat-browser-engine');
+  const browserSection = [
+    `## Browser`,
+    g('stat-browser'),
+    engine ? engine : null,
+    ``,
+    `User-Agent: ${g('stat-ua')}`,
+  ].filter(l => l !== null).join('\n');
+
+  return [
+    `# Widevine VMP Lab Report`,
+    `Generated: ${ts}`,
+    ``,
+    browserSection,
+    ``,
+    `## Widevine`,
+    `Key system: ${g('stat-ks')}`,
+    ``,
+    `## Video Codecs`,
+    `| Codec  | Status |`,
+    `|--------|--------|`,
+    codecRow('H.264', 'stat-h264'),
+    codecRow('VP9',   'stat-vp9'),
+    codecRow('HEVC',  'stat-hevc'),
+    codecRow('AV1',   'stat-av1'),
+    ``,
+    `## Audio Codecs`,
+    `| Codec  | Status |`,
+    `|--------|--------|`,
+    codecRow('AAC',   'stat-aac'),
+    codecRow('Opus',  'stat-opus'),
+    codecRow('AC-3',  'stat-ac3'),
+    codecRow('EAC-3', 'stat-eac3'),
+    ``,
+    ...(logBox.textContent.trim() ? [
+      `## Log`,
+      `\`\`\``,
+      logBox.textContent.trim(),
+      `\`\`\``,
+      ``,
+    ] : []),
+  ].join('\n');
+}
+
+function createReportBlob() {
+  return new Blob([buildReport()], { type: 'text/plain;charset=utf-8' });
+}
+
+downloadReportBtn.addEventListener('click', (e) => {
+  const url = URL.createObjectURL(createReportBlob());
+  if (e.altKey) {
+    window.open(url, '_blank');
+  } else {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `wvlab-report-${new Date().toISOString().slice(0, 10)}.md`;
+    a.click();
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+});
+
+// =========================
 // Player and content logic
 // =========================
 

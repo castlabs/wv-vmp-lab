@@ -74,6 +74,11 @@
       font-size: 13px;
       line-height: 1.4;
     }
+    .controls-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 15px;
+    }
     .status-panel {
       min-width: 260px;
       width: 260px;
@@ -190,7 +195,10 @@
     </fieldset>
   </div>
 
-  <button id="loadContentBtn">Load Content</button>
+  <div class="controls-row">
+    <button id="loadContentBtn">Load Content</button>
+    <button id="downloadReportBtn" title="Download report (Alt+Click to open in tab)">Download Report</button>
+  </div>
 
   <fieldset class="player-box">
     <legend>Player</legend>
