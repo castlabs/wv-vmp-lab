@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright 2026 Castlabs, GmbH
+# SPDX-License-Identifier: Apache-2.0
 
 import http.server
 import ssl

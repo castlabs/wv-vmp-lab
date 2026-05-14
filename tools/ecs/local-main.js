@@ -1,3 +1,6 @@
+// Copyright 2026 Castlabs, GmbH
+// SPDX-License-Identifier: Apache-2.0
+
 const {app, components, BrowserWindow} = require('electron');
 
 app.whenReady().then(async () => {
