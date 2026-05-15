@@ -184,7 +184,9 @@ async function checkStatus() {
   // Widevine key system availability
   if (!navigator.requestMediaKeySystemAccess) {
     setStatus('stat-ks', 'error', 'EME not supported');
-    ['stat-h264', 'stat-vp9', 'stat-hevc', 'stat-av1', 'stat-aac', 'stat-opus', 'stat-ac3', 'stat-eac3'].forEach(
+    ['stat-h264', 'stat-vp8', 'stat-vp9', 'stat-hevc', 'stat-av1',
+     'stat-aac', 'stat-vorbis', 'stat-flac', 'stat-opus', 'stat-ac3', 'stat-eac3',
+     'stat-cenc', 'stat-cbcs', 'stat-sess-temporary', 'stat-sess-persistent'].forEach(
       id => setStatus(id, 'na', '—')
     );
   } else {
@@ -195,18 +197,29 @@ async function checkStatus() {
     }]);
     setStatus('stat-ks', ksOk ? 'ok' : 'error', ksOk ? 'Available' : 'Not available');
 
-    // Video and audio codec checks (run in parallel)
+    // Video and audio codec checks, encryption schemes, session types (run in parallel)
     const videoCodecs = [
       { id: 'stat-h264', contentType: 'video/mp4; codecs="avc1.42E01E"' },
+      { id: 'stat-vp8', contentType: 'video/webm; codecs="vp8"' },
       { id: 'stat-vp9', contentType: 'video/webm; codecs="vp9"' },
       { id: 'stat-hevc', contentType: 'video/mp4; codecs="hvc1.1.6.L93.B0"' },
       { id: 'stat-av1', contentType: 'video/webm; codecs="av01.0.05M.08"' },
     ];
     const audioCodecs = [
       { id: 'stat-aac', contentType: 'audio/mp4; codecs="mp4a.40.2"' },
+      { id: 'stat-vorbis', contentType: 'audio/webm; codecs="vorbis"' },
+      { id: 'stat-flac', contentType: 'audio/mp4; codecs="flac"' },
       { id: 'stat-opus', contentType: 'audio/webm; codecs="opus"' },
       { id: 'stat-ac3', contentType: 'audio/mp4; codecs="ac-3"' },
       { id: 'stat-eac3', contentType: 'audio/mp4; codecs="ec-3"' },
+    ];
+    const encSchemes = [
+      { id: 'stat-cenc', scheme: 'cenc' },
+      { id: 'stat-cbcs', scheme: 'cbcs' },
+    ];
+    const sessTypes = [
+      { id: 'stat-sess-temporary', sessionType: 'temporary' },
+      { id: 'stat-sess-persistent', sessionType: 'persistent-license' },
     ];
     await Promise.all([
       ...videoCodecs.map(({ id, contentType }) =>
@@ -215,6 +228,14 @@ async function checkStatus() {
       ),
       ...audioCodecs.map(({ id, contentType }) =>
         checkKeySystem([{ initDataTypes: ['cenc'], audioCapabilities: [{ contentType }] }])
+          .then(ok => setStatus(id, ok ? 'ok' : 'error', ok ? '✓' : '✗'))
+      ),
+      ...encSchemes.map(({ id, scheme }) =>
+        checkKeySystem([{ initDataTypes: ['cenc'], videoCapabilities: [{ contentType: 'video/mp4; codecs="avc1.42E01E"', encryptionScheme: scheme }] }])
+          .then(ok => setStatus(id, ok ? 'ok' : 'error', ok ? '✓' : '✗'))
+      ),
+      ...sessTypes.map(({ id, sessionType }) =>
+        checkKeySystem([{ initDataTypes: ['cenc'], videoCapabilities: [{ contentType: 'video/mp4; codecs="avc1.42E01E"' }], sessionTypes: [sessionType] }])
           .then(ok => setStatus(id, ok ? 'ok' : 'error', ok ? '✓' : '✗'))
       ),
     ]);
@@ -282,6 +303,7 @@ const downloadReportBtn = document.getElementById('downloadReportBtn');
 function buildReport() {
   const g = id => document.getElementById(id)?.textContent.trim() ?? '—';
   const codecRow = (label, id) => `| ${label.padEnd(6)} | ${g(id).padEnd(6)} |`;
+  const sessRow = (label, id) => `| ${label.padEnd(10)} | ${g(id).padEnd(6)} |`;
   const now = new Date();
   const ts = now.toISOString().slice(0, 16).replace('T', ' ');
 
@@ -307,17 +329,32 @@ function buildReport() {
     `| Codec  | Status |`,
     `|--------|--------|`,
     codecRow('H.264', 'stat-h264'),
-    codecRow('VP9',   'stat-vp9'),
-    codecRow('HEVC',  'stat-hevc'),
-    codecRow('AV1',   'stat-av1'),
+    codecRow('VP8', 'stat-vp8'),
+    codecRow('VP9', 'stat-vp9'),
+    codecRow('HEVC', 'stat-hevc'),
+    codecRow('AV1', 'stat-av1'),
     ``,
     `## Audio Codecs`,
     `| Codec  | Status |`,
     `|--------|--------|`,
-    codecRow('AAC',   'stat-aac'),
-    codecRow('Opus',  'stat-opus'),
-    codecRow('AC-3',  'stat-ac3'),
+    codecRow('AAC', 'stat-aac'),
+    codecRow('Vorbis', 'stat-vorbis'),
+    codecRow('FLAC', 'stat-flac'),
+    codecRow('Opus', 'stat-opus'),
+    codecRow('AC-3', 'stat-ac3'),
     codecRow('EAC-3', 'stat-eac3'),
+    ``,
+    `## Encryption Schemes`,
+    `| Scheme | Status |`,
+    `|--------|--------|`,
+    codecRow('CENC', 'stat-cenc'),
+    codecRow('CBCS', 'stat-cbcs'),
+    ``,
+    `## Session Types`,
+    `| Type       | Status |`,
+    `|------------|--------|`,
+    sessRow('Temporary', 'stat-sess-temporary'),
+    sessRow('Persistent', 'stat-sess-persistent'),
     ``,
     ...(logBox.textContent.trim() ? [
       `## Log`,
