@@ -5,6 +5,7 @@
 <head>
   <meta charset="utf-8">
   <title>Widevine VMP Lab</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <style>
     body {
@@ -43,7 +44,7 @@
       grid-template-columns: 1fr 260px;
       grid-template-rows: auto auto 1fr;
       grid-template-areas:
-        "selects   env"
+        "selects   logo"
         "player    env"
         "log       env";
       gap: 15px 20px;
@@ -90,6 +91,13 @@
     .status-panel {
       grid-area: env;
       min-width: 0;
+      margin: 0;
+    }
+    .logo-panel {
+      grid-area: logo;
+      position: relative;
+      display: block;
+      overflow: hidden;
     }
     .status-panel fieldset {
       padding: 8px 10px 10px;
@@ -175,9 +183,9 @@
   <div class="page-layout">
   <div class="main-content">
   <div class="selects">
-    <fieldset>
+    <fieldset style="display: flex; align-items: center;">
       <legend>Controls</legend>
-      <div style="display:flex; gap:8px;">
+      <div style="display:flex; gap:8px; align-items:center;">
         <button id="loadContentBtn" title="Load selected content and initialize the player">Load Content</button>
         <button id="downloadReportBtn" title="Download report (Alt+Click to open in tab)">Download Report</button>
       </div>
@@ -219,6 +227,10 @@
     <pre id="logBox"></pre>
   </fieldset>
   </div><!-- .main-content -->
+
+  <a class="logo-panel" href="https://castlabs.com" target="_blank" title="castlabs.com">
+    <img src="https://castlabs.com/wp-content/themes/wordpress-cl-theme/assets/castlabs-logo.svg" alt="Castlabs" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:contain; transform:scale(1.25); transform-origin:center;">
+  </a>
 
   <aside class="status-panel">
     <fieldset>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 64 64">
+  <defs>
+    <style>
+      .st0 { fill: #fa423c; }
+      .play { fill: #262a35; }
+      @media (prefers-color-scheme: dark) {
+        .play { fill: white; }
+      }
+    </style>
+  </defs>
+  <!-- Castlabs dot cascade (from castlabs.com favicon) -->
+  <circle class="st0" cx="23.76" cy="5.81" r="5.81"/>
+  <circle class="st0" cx="9.86" cy="11.87" r="6.06"/>
+  <circle class="st0" cx="34.34" cy="14.78" r="5.06"/>
+  <circle class="st0" cx="21.31" cy="19.8" r="5.15"/>
+  <circle class="st0" cx="43.85" cy="23.53" r="4.32"/>
+  <circle class="st0" cx="32.02" cy="27.27" r="4.44"/>
+  <circle class="st0" cx="51.98" cy="33.08" r="3.69"/>
+  <circle class="st0" cx="40.65" cy="34.86" r="3.82"/>
+  <circle class="st0" cx="57.05" cy="42.62" r="3.15"/>
+  <circle class="st0" cx="47.59" cy="42.67" r="3.15"/>
+  <circle class="st0" cx="52.32" cy="50.89" r="3.03"/>
+  <circle class="st0" cx="46.13" cy="57.15" r="2.61"/>
+  <circle class="st0" cx="39.33" cy="61.47" r="2.53"/>
+  <!-- Play triangle in lower-left: dark navy on light theme, white on dark theme -->
+  <polygon class="play" points="2,40 2,62 22,51"/>
+</svg>
